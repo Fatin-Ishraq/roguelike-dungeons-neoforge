@@ -1,0 +1,13 @@
+# Gradle / build output
+**/build/
+**/run/
+**/.gradle/
+
+# Logs and local config produced by a run
+**/logs/
+**/config/roguelike-dungeons.json
+
+# IDE
+.idea/
+*.iml
+.vscode/

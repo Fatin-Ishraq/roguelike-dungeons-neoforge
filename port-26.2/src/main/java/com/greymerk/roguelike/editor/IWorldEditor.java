@@ -1,0 +1,55 @@
+package com.greymerk.roguelike.editor;
+
+import java.util.Optional;
+import java.util.function.Predicate;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.Level;
+
+/** Interface for class that provides read/write methods for editing
+ *  a world.
+ *  
+ *  Implemented by {@code WorldEditor} 
+ */
+public interface IWorldEditor {
+	
+	public boolean set(Coord pos, MetaBlock metaBlock);
+	
+	public boolean set(Coord pos, MetaBlock block, Predicate<BlockContext> p);
+		
+	public MetaBlock getBlock(Coord pos);
+	
+	public boolean hasBlockEntity(Coord pos);
+		
+	public <T> Optional<T> getBlockEntity(Coord pos, Class<T> beClass);
+	
+	public <T> Optional<T> setBlockEntity(Coord pos, MetaBlock block, Class<T> beClass);
+	
+	public long getSeed(Coord pos);
+	
+	public RandomSource getRandom(Coord pos);
+	
+	public boolean isChunkLoaded(Coord pos);
+	
+	public boolean surroundingChunksLoaded(Coord pos);
+	
+	public boolean isSolid(Coord pos);
+		
+	public boolean isSupported(Coord pos);
+	
+	public boolean isFaceFullSquare(Coord pos, Cardinal dir);
+	
+	public ResourceKey<Level> getRegistryKey();
+
+	public boolean isAir(Coord pos);
+	
+	public IWorldInfo getInfo();
+
+	Coord findSurface(Coord pos);
+
+	int getDungeonEntryDepth(Coord origin);
+	
+	Statistics getStatistics();
+	
+	public void clearStats();
+}

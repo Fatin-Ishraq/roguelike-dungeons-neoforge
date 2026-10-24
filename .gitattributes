@@ -1,0 +1,7 @@
+# Keep every stored file byte-for-byte as committed. The upstream reference trees
+# are asserted to be identical to specific upstream commits, so git must not
+# rewrite line endings on checkout.
+* -text
+
+# Except the POSIX wrapper scripts, which must be LF to run on Linux and macOS.
+gradlew text eol=lf

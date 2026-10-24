@@ -1,0 +1,109 @@
+plugins {
+    id 'java-library'
+    id 'net.neoforged.moddev' version '2.0.148'
+}
+
+version = project.mod_version
+group = project.maven_group
+
+base {
+    archivesName = project.archives_base_name
+}
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(25)
+
+repositories {
+    mavenCentral()
+}
+
+neoForge {
+    version = project.neo_version
+
+    runs {
+        client {
+            client()
+        }
+        server {
+            server()
+            programArgument '--nogui'
+        }
+    }
+
+    mods {
+        roguelike {
+            sourceSet sourceSets.main
+        }
+    }
+
+    // NeoForge's unit-test support brings up the FML runtime inside the test JVM, which is
+    // what makes the vanilla registries bootstrappable for the registry-dependent tests.
+    unitTest {
+        enable()
+        testedMod = mods.roguelike
+    }
+}
+
+// Upstream keeps its unit tests under src/test/<package> instead of src/test/java/<package>.
+sourceSets.test.java.srcDirs = ['src/test']
+
+// The upstream tests exercise registry, NBT and level types directly, so the test source set
+// needs the same Minecraft/NeoForge classpath as the mod itself.
+neoForge.addModdingDependenciesTo(sourceSets.test)
+
+dependencies {
+    testImplementation(platform('org.junit:junit-bom:5.10.2'))
+    testImplementation('org.junit.jupiter:junit-jupiter')
+    testImplementation('org.junit.platform:junit-platform-launcher')
+}
+
+tasks.withType(ProcessResources).configureEach {
+    var replaceProperties = [
+            minecraft_version      : project.minecraft_version,
+            minecraft_version_range: project.minecraft_version_range,
+            neo_version            : project.neo_version,
+            neo_version_range      : project.neo_version_range,
+            loader_version_range   : project.loader_version_range,
+            mod_id                 : project.mod_id,
+            mod_name               : project.mod_name,
+            mod_license            : project.mod_license,
+            mod_version            : project.version,
+            mod_authors            : project.mod_authors,
+            mod_description        : project.mod_description
+    ]
+    inputs.properties replaceProperties
+
+    filesMatching(['META-INF/neoforge.mods.toml']) {
+        expand replaceProperties
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 25
+    options.compilerArgs.addAll(['-Xmaxerrs', '2000', '-Xmaxwarns', '2000'])
+}
+
+test {
+    useJUnitPlatform()
+}
+
+java {
+    // GPL-3.0-only requires the corresponding source to be offered with the binary.
+    withSourcesJar()
+}
+
+jar {
+    from('LICENSE') {
+        rename { "${it}_${base.archivesName.get()}" }
+    }
+    // GPL-3.0-only requires a binary distribution to carry the licence and the notices
+    // that identify the modifications and the third-party content.
+    from('NOTICE.md')
+    from('PORTING_NOTES.md')
+    from('THIRD_PARTY_NOTICES.md')
+}
+
+// Forward stdin so the dedicated server console accepts `stop` during smoke tests.
+tasks.matching { it.name == 'runServer' }.configureEach {
+    standardInput = System.in
+}
